@@ -2,6 +2,9 @@ use std::iter::IntoIterator;
 use std::collections::HashSet;
 use std::rc::Rc;
 
+#[cfg(feature = "yaml")]
+use yaml_rust::Yaml;
+
 use usageparser::{UsageParser, UsageToken};
 
 /// The abstract representation of a command line argument used by the consumer of the library.
@@ -141,6 +144,65 @@ impl<'n, 'l, 'h, 'g, 'p, 'r> Arg<'n, 'l, 'h, 'g, 'p, 'r> {
             validator: None,
             overrides: None
         }
+    }
+
+    /// Creates a new instace of `App` from a .yml (YAML) file.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// # use clap::App;
+    /// let yml = load_yaml!("app.yml");
+    /// let app = App::from_yaml(yml);
+    /// ```
+    #[cfg(feature = "yaml")]
+    pub fn from_yaml<'y>(doc: &'y Yaml) -> Arg<'y, 'y, 'y, 'y, 'y, 'y> {
+        // We WANT this to panic on error...so expect() is good.
+        let mut a = Arg::with_name(doc.as_str().unwrap());
+        if let Some(v) = doc["short"].as_str() {
+            a = a.short(v);
+        }
+        if let Some(v) = doc["long"].as_str() {
+            a = a.long(v);
+        }
+        if let Some(v) = doc["help"].as_str() {
+            a = a.help(v);
+        }
+        if let Some(v) = doc["required"].as_bool() {
+            a = a.required(v);
+        }
+        if let Some(v) = doc["takes_value"].as_bool() {
+            a = a.takes_value(v);
+        }
+        if let Some(v) = doc["index"].as_i64() {
+            a = a.index(v as u8);
+        }
+        if let Some(v) = doc["multiple"].as_bool() {
+            a = a.multiple(v);
+        }
+        if let Some(v) = doc["global"].as_bool() {
+            a = a.global(v);
+        }
+        if let Some(v) = doc["empty_values"].as_bool() {
+            a = a.empty_values(v);
+        }
+        if let Some(v) = doc["group"].as_str() {
+            a = a.group(v);
+        }
+        if let Some(v) = doc["number_of_values"].as_i64() {
+            a = a.number_of_values(v as u8);
+        }
+        if let Some(v) = doc["max_values"].as_i64() {
+            a = a.max_values(v as u8);
+        }
+        if let Some(v) = doc["min_values"].as_i64() {
+            a = a.min_values(v as u8);
+        }
+        if let Some(v) = doc["value_name"].as_str() {
+            a = a.value_name(v);
+        }
+
+        a
     }
 
     /// Creates a new instace of `Arg` from a usage string. Allows creation of basic settings
