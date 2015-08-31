@@ -201,6 +201,41 @@ impl<'n, 'l, 'h, 'g, 'p, 'r> Arg<'n, 'l, 'h, 'g, 'p, 'r> {
         if let Some(v) = doc["value_name"].as_str() {
             a = a.value_name(v);
         }
+        if let Some(v) = doc["requires"].as_vec() {
+            for ys in v {
+                if let Some(s) = ys.as_str() {
+                    a = a.requires(s);
+                }
+            }
+        }
+        if let Some(v) = doc["conflicts_with"].as_vec() {
+            for ys in v {
+                if let Some(s) = ys.as_str() {
+                    a = a.conflicts_with(s);
+                }
+            }
+        }
+        if let Some(v) = doc["mutually_overrides_with"].as_vec() {
+            for ys in v {
+                if let Some(s) = ys.as_str() {
+                    a = a.mutually_overrides_with(s);
+                }
+            }
+        }
+        if let Some(v) = doc["value_names"].as_vec() {
+            for ys in v {
+                if let Some(s) = ys.as_str() {
+                    a = a.value_name(s);
+                }
+            }
+        }
+        if let Some(v) = doc["possible_values"].as_vec() {
+            for ys in v {
+                if let Some(s) = ys.as_str() {
+                    a = a.possible_value(s);
+                }
+            }
+        }
 
         a
     }
@@ -733,6 +768,31 @@ impl<'n, 'l, 'h, 'g, 'p, 'r> Arg<'n, 'l, 'h, 'g, 'p, 'r> {
             names.into_iter().map(|s| vec.push(s.as_ref())).collect::<Vec<_>>();
         } else {
             self.possible_vals = Some(names.into_iter().map(|s| s.as_ref()).collect::<Vec<_>>());
+        }
+        self
+    }
+
+    /// Specifies a possible value for this argument. At runtime, clap verifies that only
+    /// one of the specified values was used, or fails with a usage string.
+    ///
+    /// **NOTE:** This setting only applies to options and positional arguments
+    ///
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use clap::{App, Arg};
+    /// # let matches = App::new("myprog")
+    /// #                 .arg(
+    /// # Arg::with_name("debug").index(1)
+    /// .possible_value("fast")
+    /// .possible_value("slow")
+    /// # ).get_matches();
+    pub fn possible_value(mut self, name: &'p str) -> Self {
+        if let Some(ref mut vec) = self.possible_vals {
+            vec.push(name);
+        } else {
+            self.possible_vals = Some(vec![name]);
         }
         self
     }
